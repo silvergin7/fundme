@@ -1,66 +1,185 @@
-## Foundry
+# Fund Me
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+A minimal crowdfunding smart contract built with [Foundry](https://book.getfoundry.sh/). Users can send ETH to the contract; the owner can withdraw the balance. Funding requires a minimum of **$5 USD** (converted via a Chainlink ETH/USD price feed).
 
-Foundry consists of:
+## Features
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+- Accept ETH through `fund()`, `receive()`, or `fallback()`
+- Enforce a minimum funding amount using Chainlink price feeds
+- Owner-only withdrawal (`withdraw` and gas-optimized `cheaperWithdraw`)
+- Network-aware deployment with mock price feeds on local Anvil
+- Deployment and interaction scripts for local, Sepolia, and zkSync networks
 
-## Documentation
+## Project Structure
 
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
+```
+src/
+  FundMe.sol          # Main crowdfunding contract
+  PriceConverter.sol  # Library for ETH/USD conversion
+script/
+  DeployFundMe.s.sol  # Deployment script
+  HelperConfig.s.sol  # Network-specific Chainlink feed addresses
+  Interactions.s.sol  # Fund and withdraw scripts
+test/
+  unit/               # Unit tests
+  integration/        # Integration tests
+  mocks/              # MockV3Aggregator for local testing
 ```
 
-### Test
+## Prerequisites
+
+- [Foundry](https://book.getfoundry.sh/getting-started/installation)
+- A `.env` file for Sepolia deployment (see below)
+
+## Installation
 
 ```shell
-$ forge test
+make install
 ```
 
-### Format
+Or manually:
 
 ```shell
-$ forge fmt
+forge install cyfrin/foundry-devops@0.2.2
+forge install smartcontractkit/chainlink-brownie-contracts@1.1.1
+forge install foundry-rs/forge-std@v1.8.2
 ```
 
-### Gas Snapshots
+## Build
 
 ```shell
-$ forge snapshot
+forge build
 ```
 
-### Anvil
+For zkSync:
 
 ```shell
-$ anvil
+make zkbuild
 ```
 
-### Deploy
+## Test
 
 ```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+forge test
 ```
 
-### Cast
+For zkSync-specific tests:
 
 ```shell
-$ cast <subcommand>
+make zktest
 ```
 
-### Help
+## Local Development
+
+Start a local Anvil node:
 
 ```shell
-$ forge --help
-$ anvil --help
-$ cast --help
+make anvil
 ```
+
+In another terminal, deploy to Anvil:
+
+```shell
+make deploy
+```
+
+Fund the contract (set `SENDER_ADDRESS` in the Makefile first):
+
+```shell
+make fund
+```
+
+Withdraw as the owner:
+
+```shell
+make withdraw
+```
+
+## Deploy to Sepolia
+
+Create a `.env` file with:
+
+```shell
+SEPOLIA_RPC_URL=<your_sepolia_rpc_url>
+ACCOUNT=<your_keystore_account_name>
+ETHERSCAN_API_KEY=<your_etherscan_api_key>
+```
+
+Then deploy:
+
+```shell
+make deploy ARGS="--network sepolia"
+```
+
+## Deploy to zkSync
+
+Start the local zkSync node:
+
+```shell
+make zk-anvil
+```
+
+Deploy locally:
+
+```shell
+make deploy-zk
+```
+
+For zkSync Sepolia, add `ZKSYNC_SEPOLIA_RPC_URL` to your `.env` and run:
+
+```shell
+make deploy-zk-sepolia
+```
+
+## Manual Script Usage
+
+Deploy:
+
+```shell
+forge script script/DeployFundMe.s.sol:DeployFundMe \
+  --rpc-url <rpc_url> \
+  --private-key <private_key> \
+  --broadcast
+```
+
+Fund:
+
+```shell
+forge script script/Interactions.s.sol:FundFundMe \
+  --rpc-url <rpc_url> \
+  --private-key <private_key> \
+  --broadcast
+```
+
+Withdraw:
+
+```shell
+forge script script/Interactions.s.sol:WithdrawFundMe \
+  --rpc-url <rpc_url> \
+  --private-key <private_key> \
+  --broadcast
+```
+
+## Makefile Commands
+
+| Command | Description |
+|---------|-------------|
+| `make build` | Compile contracts |
+| `make test` | Run tests |
+| `make anvil` | Start local Anvil node |
+| `make deploy` | Deploy to local Anvil |
+| `make deploy ARGS="--network sepolia"` | Deploy to Sepolia |
+| `make fund` | Send ETH to deployed contract |
+| `make withdraw` | Withdraw contract balance (owner only) |
+| `make format` | Format Solidity code |
+| `make snapshot` | Generate gas snapshots |
+
+## Dependencies
+
+- [forge-std](https://github.com/foundry-rs/forge-std) — Foundry testing utilities
+- [chainlink-brownie-contracts](https://github.com/smartcontractkit/chainlink-brownie-contracts) — Chainlink price feed interfaces
+- [foundry-devops](https://github.com/cyfrin/foundry-devops) — Deployment tracking and zkSync helpers
+
+## License
+
+MIT
