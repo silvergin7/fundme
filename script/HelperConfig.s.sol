@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.19;
 
-import {Script} from "forge-std/Script.sol";
+import {Script} from "../lib/forge-std/src/Script.sol";
 import {MockV3Aggregator} from "../test/mocks/MockV3Aggregator.sol";
 
 contract HelperConfig is Script {
@@ -27,7 +27,9 @@ contract HelperConfig is Script {
     }
 
     function getSepoliaEthConfig() public pure returns (NetworkConfig memory) {
-        NetworkConfig memory sepoliaConfig = NetworkConfig({priceFeed: 0x694AA1769357215DE4FAC081bf1f309aDC325306});
+        NetworkConfig memory sepoliaConfig = NetworkConfig({
+            priceFeed: 0x694AA1769357215DE4FAC081bf1f309aDC325306
+        });
         return sepoliaConfig;
     }
 
@@ -39,7 +41,9 @@ contract HelperConfig is Script {
         mockPriceFeed = new MockV3Aggregator(DECIMALS, INITIAL_PRICE);
         vm.stopBroadcast();
 
-        activeNetworkConfig = NetworkConfig({priceFeed: address(mockPriceFeed)});
+        activeNetworkConfig = NetworkConfig({
+            priceFeed: address(mockPriceFeed)
+        });
         return activeNetworkConfig;
     }
 }

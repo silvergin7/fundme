@@ -22,3 +22,12 @@ docs/
 .DS_Store
 
 zkout/
+
+lib/
+
+.vscode/
+.cursor/
+
+node_modules/
+
+.keystore/
